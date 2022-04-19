@@ -1,0 +1,52 @@
+﻿apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: centos001
+  namespace: epheo
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: centos001
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 2
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: pvdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          gpus:
+            - deviceName: nvidia.com/GEFORCE_RTX_3080
+              name: gpu
+          interfaces:
+            - masquerade: {}
+              name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        resources:
+          requests:
+            memory: 1G
+      hostname: centos001
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - persistentVolumeClaim:
+            claimName: 'vol30'
+          name: pvdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+          name: cloudinitdisk

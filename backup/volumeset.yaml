@@ -1,0 +1,73 @@
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: >
+      {"apiVersion":"local.storage.openshift.io/v1alpha1","kind":"LocalVolumeSet","metadata":{"annotations":{},"name":"local-disks","namespace":"openshift-local-storage"},"spec":{"deviceInclusionSpec":{"deviceTypes":["disk"]},"storageClassName":"localblock-sc","volumeMode":"Block"}}
+  resourceVersion: '1065321'
+  name: local-disks
+  uid: 9e1ec89a-3a2f-4c9d-b193-29eb25e916bd
+  creationTimestamp: '2022-04-12T15:17:33Z'
+  generation: 1
+  managedFields:
+    - apiVersion: local.storage.openshift.io/v1alpha1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+        'f:spec':
+          .: {}
+          'f:deviceInclusionSpec':
+            .: {}
+            'f:deviceTypes': {}
+          'f:storageClassName': {}
+          'f:volumeMode': {}
+      manager: kubectl-client-side-apply
+      operation: Update
+      time: '2022-04-12T15:17:33Z'
+    - apiVersion: local.storage.openshift.io/v1alpha1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:finalizers':
+            .: {}
+            'v:"storage.openshift.com/local-volume-protection"': {}
+      manager: local-storage-operator
+      operation: Update
+      time: '2022-04-12T15:17:33Z'
+    - apiVersion: local.storage.openshift.io/v1alpha1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:status':
+          .: {}
+          'f:conditions': {}
+          'f:observedGeneration': {}
+          'f:totalProvisionedDeviceCount': {}
+      manager: local-storage-operator
+      operation: Update
+      subresource: status
+      time: '2022-04-12T15:17:33Z'
+  namespace: openshift-local-storage
+  finalizers:
+    - storage.openshift.com/local-volume-protection
+spec:
+  deviceInclusionSpec:
+    deviceTypes:
+      - disk
+  storageClassName: localblock-sc
+  volumeMode: Block
+status:
+  conditions:
+    - lastTransitionTime: '2022-04-12T15:17:33Z'
+      message: 'DiskMaker: Available'
+      status: 'True'
+      type: DaemonSetsAvailable
+    - lastTransitionTime: '2022-04-12T15:17:33Z'
+      message: Operator reconciled successfully.
+      status: 'True'
+      type: Available
+  observedGeneration: 1
+  totalProvisionedDeviceCount: 1
+

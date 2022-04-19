@@ -1,0 +1,64 @@
+﻿apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: fedora001
+  labels:
+    app: fedora001
+    os.template.kubevirt.io/fedora31: 'true'
+    workload.template.kubevirt.io/server: 'true'
+  annotations:
+    name.os.template.kubevirt.io/fedora31: Fedora 35
+    description: VM example
+  namespace: epheo
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: fedora001
+        vm.kubevirt.io/name: fedora001
+        os.template.kubevirt.io/fedora31: 'true'
+        workload.template.kubevirt.io/server: 'true'
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: pvdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          hostDevices:
+            - deviceName: nvidia.com/GEFORCE_RTX_3080
+              name: gpu
+            - deviceName: nvidia.com/GEFORCE_RTX_3080_AUDIO
+              name: gpuaudio
+          interfaces:
+            - masquerade: {}
+              name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        resources:
+          requests:
+            memory: 1G
+      hostname: fedora001
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - persistentVolumeClaim:
+            claimName: 'vol30'
+          name: pvdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+          name: cloudinitdisk

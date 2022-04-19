@@ -1,0 +1,22 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: cnvhpp
+spec:
+  capacity:
+    storage: 50Gi
+  local:
+    path: /dev/mapper/localvolumes-ocp50
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  volumeMode: Block
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - da2

@@ -1,0 +1,40 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: fedora35
+  labels:
+    vol: fedora35
+spec:
+  capacity:
+    storage: 100Gi
+  local:
+    path: /dev/fedora_da2/fedora35
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  volumeMode: Block
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - da2
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: fedora35
+  labels:
+    vol: fedora35
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 100Gi 
+  storageClassName: local-storage

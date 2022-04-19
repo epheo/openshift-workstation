@@ -1,0 +1,66 @@
+﻿apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: fedora001
+  labels:
+    app: fedora001
+    os.template.kubevirt.io/fedora31: 'true'
+    workload.template.kubevirt.io/server: 'true'
+  annotations:
+    name.os.template.kubevirt.io/fedora31: Fedora 35
+    description: VM example
+  namespace: epheo
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: fedora001
+        vm.kubevirt.io/name: fedora001
+        os.template.kubevirt.io/fedora31: 'true'
+        workload.template.kubevirt.io/server: 'true'
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: pvdisk
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          interfaces:
+            - masquerade: {}
+              name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        resources:
+          requests:
+            memory: 1G
+      hostname: fedora001
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - persistentVolumeClaim:
+            claimName: 'vol30'
+          name: pvdisk
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              user: fedora
+              password: fedora
+              chpasswd: { expire: False }
+              ssh_authorized_keys:
+                - >
+                  ssh-rsa
+                  AAAAB3NzaC1yc2EAAAADAQABAAABAQDMo03B6zD4ETKiOONdmgc+ZrlLH3hyqr7vHr4DpuWquhhhFkIkv8C+WcB16X+VHKFYHTRM/Lo3id6wYP5ka2ZakTlZhIUvNuCrXJvfy56SrLAxAcCIgUMx+CyStJ7/xUPUiE9X7CLsX9YU6vnzTk276jWP3rTTd7e2GYiplZcrUo9MuMDtX0GHNurr7i25XESqYaT1aOnVBPkmacObUvFjvhzDwbe33S7txYxaRRHuxS386KsTmAp9IYhJIpR5eMUhv7CnlTJbprB6PB/MXqtYteYydZVcOeY98QJEKKugiLWNXxIXPg/wI8dvZ7SOv4Pv/g9M6HoM+2HPmGWK9IFX
+                  epheo@mibook
+          name: cloudinitdisk
+          name: cloudinitdisk
