@@ -1,28 +1,30 @@
 ﻿apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: fedora35
+  name: fedora001
+  labels:
+    app: fedora001
+    os.template.kubevirt.io/fedora31: 'true'
+    workload.template.kubevirt.io/server: 'true'
+  annotations:
+    name.os.template.kubevirt.io/fedora31: Fedora 35
+    description: VM example
   namespace: epheo
 spec:
   running: false
   template:
     metadata:
       labels:
-        kubevirt.io/domain: fedora35
+        kubevirt.io/domain: fedora001
+        vm.kubevirt.io/name: fedora001
+        os.template.kubevirt.io/fedora31: 'true'
+        workload.template.kubevirt.io/server: 'true'
     spec:
       domain:
         cpu:
-          cores: 8
-          sockets: 2
+          cores: 1
+          sockets: 1
           threads: 1
-        features:
-          acpi: {}
-          smm:
-            enabled: true 
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
         devices:
           autoattachGraphicsDevice: false
           disks:
@@ -43,15 +45,15 @@ spec:
           rng: {}
         resources:
           requests:
-            memory: 32G
-      hostname: fedora35
+            memory: 1G
+      hostname: fedora001
       networks:
         - name: default
           pod: {}
       terminationGracePeriodSeconds: 0
       volumes:
         - persistentVolumeClaim:
-            claimName: 'fedora35'
+            claimName: 'fedora001'
           name: pvdisk
         - cloudInitNoCloud:
             userData: |-

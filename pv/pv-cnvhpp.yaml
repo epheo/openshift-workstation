@@ -6,7 +6,7 @@ spec:
   capacity:
     storage: 50Gi
   local:
-    path: /dev/mapper/localvolumes-ocp50
+    path: /dev/fedora_da2/hpp
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Delete

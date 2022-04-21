@@ -1,30 +1,28 @@
 ﻿apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: fedora001
-  labels:
-    app: fedora001
-    os.template.kubevirt.io/fedora31: 'true'
-    workload.template.kubevirt.io/server: 'true'
-  annotations:
-    name.os.template.kubevirt.io/fedora31: Fedora 35
-    description: VM example
+  name: fedora35
   namespace: epheo
 spec:
-  running: false
+  running: true
   template:
     metadata:
       labels:
-        kubevirt.io/domain: fedora001
-        vm.kubevirt.io/name: fedora001
-        os.template.kubevirt.io/fedora31: 'true'
-        workload.template.kubevirt.io/server: 'true'
+        kubevirt.io/domain: fedora35
     spec:
       domain:
         cpu:
-          cores: 1
-          sockets: 1
+          cores: 8
+          sockets: 2
           threads: 1
+        features:
+          acpi: {}
+          smm:
+            enabled: true 
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: true
         devices:
           disks:
             - bootOrder: 1
@@ -34,11 +32,13 @@ spec:
             - disk:
                 bus: virtio
               name: cloudinitdisk
-          hostDevices:
+          autoattachGraphicsDevice: false
+          gpus:
             - deviceName: nvidia.com/GEFORCE_RTX_3080
-              name: gpu
-            - deviceName: nvidia.com/GEFORCE_RTX_3080_AUDIO
-              name: gpuaudio
+              name: gpuvideo
+          hostDevices:
+            - deviceName: devices.kubevirt.io/USB3_Controller
+              name: usbcontroller
           interfaces:
             - masquerade: {}
               name: default
@@ -46,15 +46,15 @@ spec:
           rng: {}
         resources:
           requests:
-            memory: 1G
-      hostname: fedora001
+            memory: 32G
+      hostname: fedora35
       networks:
         - name: default
           pod: {}
       terminationGracePeriodSeconds: 0
       volumes:
         - persistentVolumeClaim:
-            claimName: 'vol30'
+            claimName: 'fedora35'
           name: pvdisk
         - cloudInitNoCloud:
             userData: |-

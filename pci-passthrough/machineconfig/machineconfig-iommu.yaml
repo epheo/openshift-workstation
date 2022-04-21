@@ -2,7 +2,7 @@ apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
   labels:
-    machineconfiguration.openshift.io/role: worker 
+    machineconfiguration.openshift.io/role: master
   name: 100-worker-iommu 
 spec:
   config:
@@ -10,3 +10,6 @@ spec:
       version: 3.2.0
   kernelArguments:
       - amd_iommu=on 
+      - vga=off
+      - rdblaclist=nouveau
+      - 'video=efifb:off'
