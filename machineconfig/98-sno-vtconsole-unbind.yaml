@@ -3,7 +3,7 @@ kind: MachineConfig
 metadata:
   labels:
     machineconfiguration.openshift.io/role: master
-  name: 98-unbind-usb
+  name: 98-sno-vtconsole-unbind
 spec:
   config:
     ignition:
@@ -12,17 +12,15 @@ spec:
       units:
       - contents: |
          [Unit]
-         Description=Unbind USB Host Controller
+         Description=Dettach GPU VT Console 
          After=ignition-firstboot-complete.service
          Before=kubelet.service crio.service
 
          [Service]
          Type=oneshot
-         ExecStart=/bin/bash -c "/bin/echo 0000:0b:00.3 > /sys/bus/pci/devices/0000\\:0b\\:00.3/driver/unbind"
-         ExecStart=/bin/bash -c "/bin/echo vfio-pci > /sys/bus/pci/devices/0000\\:0b\\:00.3/driver_override"
-         ExecStart=/bin/bash -c "/bin/echo 1043 87c0 > /sys/bus/pci/drivers/vfio-pci/new_id"
+         ExecStart=/bin/bash -c "/bin/echo 0 > /sys/class/vtconsole/vtcon0/bind"
 
          [Install]
          WantedBy=kubelet.service
         enabled: true
-        name: unbindusbcontroller.service
+        name: dettachvtconsole.service

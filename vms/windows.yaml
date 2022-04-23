@@ -1,0 +1,97 @@
+﻿apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: windows
+  namespace: epheo
+  annotations:
+    vm.kubevirt.io/os: windows10
+    vm.kubevirt.io/workload: desktop
+spec:
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: windows
+    spec:
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 8
+          sockets: 2
+          threads: 1
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            reenlightenment: {}
+            ipi: {}
+            synic: {}
+            synictimer:
+              direct: {}
+            spinlocks:
+              spinlocks: 8191
+            reset: {}
+            relaxed: {}
+            vpindex: {}
+            runtime: {}
+            tlbflush: {}
+            frequencies: {}
+            vapic: {}
+          smm:
+            enabled: true 
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: true
+        devices:
+          disks:
+            - cdrom:
+                bus: sata
+              name: windows-guest-tools
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: pvdisk
+            - disk:
+                bus: virtio
+              name: pvdisk1
+          autoattachGraphicsDevice: false
+          gpus:
+            - deviceName: nvidia.com/GEFORCE_RTX_3080
+              name: gpuvideo
+          hostDevices:
+            - deviceName: devices.kubevirt.io/USB3_Controller
+              name: usbcontroller
+          interfaces:
+            - masquerade: {}
+              name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        resources:
+          requests:
+            memory: 32G
+      hostname: windows
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - containerDisk:
+            image: >-
+              registry.redhat.io/container-native-virtualization/virtio-win@sha256:64c840592a167a530579b6f47f937c54140125b207d9e60f57d6472b5b99ea55
+          name: windows-guest-tools
+        - persistentVolumeClaim:
+            claimName: 'windows'
+          name: pvdisk
+        - persistentVolumeClaim:
+            claimName: 'windowsdata'
+          name: pvdisk1

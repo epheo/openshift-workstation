@@ -1,0 +1,40 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: windowsdata
+  labels:
+    vol: windowsdata
+spec:
+  capacity:
+    storage: 1000Gi
+  local:
+    path: /dev/fedora_da2/windows_data
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  volumeMode: Block
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - da2
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: windowsdata
+  labels:
+    vol: windowsdata
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 1000Gi 
+  storageClassName: local-storage

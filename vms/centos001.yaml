@@ -4,7 +4,7 @@ metadata:
   name: centos001
   namespace: epheo
 spec:
-  running: false
+  runStrategy: Always
   template:
     metadata:
       labels:
@@ -12,8 +12,8 @@ spec:
     spec:
       domain:
         cpu:
-          cores: 1
-          sockets: 2
+          cores: 2
+          sockets: 1
           threads: 1
         devices:
           disks:
@@ -21,12 +21,10 @@ spec:
               disk:
                 bus: virtio
               name: pvdisk
-            - disk:
+            - bootOrder: 2
+              disk:
                 bus: virtio
-              name: cloudinitdisk
-          gpus:
-            - deviceName: nvidia.com/GEFORCE_RTX_3080
-              name: gpu
+              name: pvdisk2
           interfaces:
             - masquerade: {}
               name: default
@@ -34,7 +32,7 @@ spec:
           rng: {}
         resources:
           requests:
-            memory: 1G
+            memory: 4G
       hostname: centos001
       networks:
         - name: default
@@ -42,11 +40,8 @@ spec:
       terminationGracePeriodSeconds: 0
       volumes:
         - persistentVolumeClaim:
-            claimName: 'vol30'
+            claimName: 'centos'
           name: pvdisk
-        - cloudInitNoCloud:
-            userData: |-
-              #cloud-config
-              password: fedora
-              chpasswd: { expire: False }
-          name: cloudinitdisk
+        - persistentVolumeClaim:
+            claimName: 'lindata'
+          name: pvdisk2

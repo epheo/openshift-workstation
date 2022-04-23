@@ -3,7 +3,7 @@ kind: MachineConfig
 metadata:
   labels:
     machineconfiguration.openshift.io/role: master
-  name: 100-worker-iommu 
+  name: 100-sno-kernelargs 
 spec:
   config:
     ignition:

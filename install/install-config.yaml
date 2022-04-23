@@ -1,0 +1,24 @@
+apiVersion: v1
+baseDomain: epheo.eu
+compute:
+- name: worker
+  replicas: 0 
+controlPlane:
+  name: master
+  replicas: 1 
+metadata:
+  name: da2
+networking:
+  networkType: OVNKubernetes
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  none: {}
+bootstrapInPlace:
+  installationDisk: /dev/sda
+pullSecret: '{"auths":{"cloud.openshift.com":{"auth":"XXXXXXXX"}}}' 
+sshKey: |
+  ssh-rsa AAAAB3XXXXXXXXXXXXXXXXXXXXXXXXX
