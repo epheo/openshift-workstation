@@ -271,7 +271,7 @@ kind: HyperConverged
 metadata:
   name: kubevirt-hyperconverged
   namespace: openshift-cnv
-:spec:
+spec:
   permittedHostDevices: 
     pciHostDevices: 
     - pciDeviceSelector: "1222:164F"
