@@ -743,54 +743,30 @@ asciidoc.install(2);
 </div>
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph"><p>OpenShift as a workstation with GPU PCI passthrough and Container Native
-Virtualization (CNV).</p></div>
-</div>
-</div>
 <div class="sect1">
 <h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
+<div class="paragraph"><p>This arcticle discribes a way to run OpenShift as a workstation with GPU PCI
+passthrough and using Container Native Virtualization (CNV) in order to provide
+a virtualized Desktop experience running on a single OpenShift node.</p></div>
 <div class="paragraph"><p>This is used to run Microsoft FlightSimulator in a Windows VM with performances
 close from a Bare metal Windows installation.</p></div>
+<div class="paragraph"><p>In the future, a few improvements will be worked on:
+* Reducing the Control Plane footprint by relaying on microshift instead.
+* Using GPU from containers instead of virtual machines for Linux Desktop.</p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_hardware_description">Hardware description</h2>
 <div class="sectionbody">
-<div class="ulist"><ul>
-<li>
-<p>
-AMD Ryzen 9 3950X 16-Core 32-Threads
-</p>
-</li>
-<li>
-<p>
-64GB DDR4
-</p>
-</li>
-<li>
-<p>
-Nvidia RTX 3080
-</p>
-</li>
-<li>
-<p>
-2x NVMe Disks
-</p>
-</li>
-<li>
-<p>
-1x SSD Disk
-</p>
-</li>
-<li>
-<p>
-Single NIC 1GB
-</p>
-</li>
-</ul></div>
+<div class="paragraph"><p>The workstation in use for this demo is a compact, mini-ITX workstation with the
+following hardware:
+* AMD Ryzen 9 3950X 16-Core 32-Threads
+* 64GB DDR4
+* Nvidia RTX 3080
+* 2x NVMe Disks
+* 1x SSD Disk
+* Single NIC 1GB</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -859,15 +835,14 @@ pullSecret: '{"auths":{"cloud.openshift.com":{"auth":"XXXXXXXX"}}}'
 sshKey: |
   ssh-rsa AAAAB3XXXXXXXXXXXXXXXXXXXXXXXXX</code></pre>
 </div></div>
-<div class="paragraph"><p>Generate OpenShift Container Platform assets:</p></div>
 <div class="listingblock">
+<div class="title">Generate OpenShift Container Platform assets:</div>
 <div class="content">
-<pre><code>mkdir ocp
-cp install-config.yaml ocp
+<pre><code>mkdir ocp &amp;&amp; cp install-config.yaml ocp
 openshift-install --dir=ocp create single-node-ignition-config</code></pre>
 </div></div>
-<div class="paragraph"><p>Embed the ignition data into the RHCOS ISO:</p></div>
 <div class="listingblock">
+<div class="title">Embed the ignition data into the RHCOS ISO:</div>
 <div class="content">
 <pre><code>alias coreos-installer='podman run --privileged --rm \
       -v /dev:/dev -v /run/udev:/run/udev -v $PWD:/data \
@@ -876,8 +851,8 @@ cp ocp/bootstrap-in-place-for-live-iso.ign iso.ign
 coreos-installer iso ignition embed -fi iso.ign rhcos-live.x86_64.iso
 dd if=discovery_image_sno.iso of=/dev/usbkey status=progress</code></pre>
 </div></div>
-<div class="paragraph"><p>After the ISO is copied to the USB drive, you can use the USB drive to install
-OpenShift Container Platform.</p></div>
+<div class="paragraph"><p>Once the ISO is copied to the USB drive, you can use the USB drive to boot your
+workstation node and install OpenShift Container Platform.</p></div>
 <div class="sect2">
 <h3 id="_install_cnv_operator">Install CNV Operator</h3>
 <div class="paragraph"><p>Activate Intel VT or AMD-V hardware virtualization extensions in BIOS.</p></div>
@@ -915,7 +890,7 @@ spec:
 <div class="content">
 <pre><code>oc apply -f cnv-resources.yaml</code></pre>
 </div></div>
-<div class="paragraph"><p>Installing the Virtctl client on your desktop;</p></div>
+<div class="paragraph"><p>Installing the Virtctl client on your desktop.</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>subscription-manager repos --enable cnv-4.10-for-rhel-8-x86_64-rpms
@@ -925,8 +900,8 @@ dnf install kubevirt-virtctl</code></pre>
 <div class="sect2">
 <h3 id="_remove_local_storage_operator_if_installed">Remove Local Storage operator (if installed)</h3>
 <div class="paragraph"><p>As we do not need to manage LVM volumes automatically we would like to avoid
-automatically formating Logical Volumes once they are deleted from OpenShift,
-while this could lead to data leack in a multi tenant environment, removing the
+automatically formating Logical Volumes once they are deleted from OpenShift.</p></div>
+<div class="paragraph"><p>While this could lead to data leak in a multi-tenant environment, removing the
 Local Storage Operator also avoid loosing your Virtual Machine partitions once
 you delete it.</p></div>
 </div>
@@ -947,6 +922,7 @@ instead.</p></div>
 <div class="paragraph"><p>To prevent Host system to bind console to GPU</p></div>
 <div class="paragraph"><p><a href="https://www.reddit.com/r/VFIO/comments/cktnhv/bar_0_cant_reserve/">https://www.reddit.com/r/VFIO/comments/cktnhv/bar_0_cant_reserve/</a>
 <a href="https://www.reddit.com/r/VFIO/comments/mx5td8/bar_3_cant_reserve_mem_0xc00000000xc1ffffff_64bit/">https://www.reddit.com/r/VFIO/comments/mx5td8/bar_3_cant_reserve_mem_0xc00000000xc1ffffff_64bit/</a></p></div>
+<div class="paragraph"><p>Ref: <a href="https://docs.kernel.org/fb/fbcon.html">https://docs.kernel.org/fb/fbcon.html</a></p></div>
 <div class="listingblock">
 <div class="title">100-sno-kernelargs.yaml</div>
 <div class="content">
@@ -974,6 +950,7 @@ spec:
 <td class="content">If you&#8217;re using an Intel CPU you&#8217;ll have to set intel_iommu=on instead.</td>
 </tr></table>
 </div>
+<div class="paragraph"><p>We deactivate the EFI Frambuffer with efifb:off</p></div>
 </div>
 <div class="sect2">
 <h3 id="_binding_gpu_to_vfio_driver_at_boot_time">Binding GPU to VFIO Driver at boot time</h3>
@@ -1014,6 +991,7 @@ oc apply -f 100-sno-vfiopci.yaml</code></pre>
 </div>
 <div class="sect2">
 <h3 id="_unbinding_vtconsole_at_boot_time">Unbinding VTConsole at boot time</h3>
+<div class="paragraph"><p>Ref: <a href="https://docs.kernel.org/fb/fbcon.html">https://docs.kernel.org/fb/fbcon.html</a></p></div>
 <div class="listingblock">
 <div class="title">98-sno-vtconsole-unbind.yaml</div>
 <div class="content">
@@ -1115,7 +1093,7 @@ kind: HyperConverged
 metadata:
   name: kubevirt-hyperconverged
   namespace: openshift-cnv
-spec:
+:spec:
   permittedHostDevices:
     pciHostDevices:
     - pciDeviceSelector: "1222:164F"
@@ -1173,7 +1151,8 @@ spec:
 <div class="sect1">
 <h2 id="_creating_virtual_machine">Creating Virtual Machine</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>iiii</p></div>
+<div class="paragraph"><p>The virtual machine will use existing LVM Logical volumes, here we will assume
+we already have the Operating System installed on the LV with a UEFI boot.</p></div>
 <div class="sect2">
 <h3 id="_create_pv_and_pv_claim_out_of_local_lvm_disks">Create PV and PV Claim out of local LVM disks</h3>
 <div class="paragraph"><p>Binding PV and PVC by label <a href="https://docs.openshift.com/container-platform/3.3/install_config/storage_examples/binding_pv_by_label.html">https://docs.openshift.com/container-platform/3.3/install_config/storage_examples/binding_pv_by_label.html</a></p></div>
@@ -1224,12 +1203,14 @@ spec:
 </div>
 <div class="sect2">
 <h3 id="_defining_the_virtual_machine">Defining the Virtual Machine</h3>
-<div class="paragraph"><p>Remove embeded VGA
-ref: <a href="https://kubevirt.io/api-reference/master/definitions.html#_v1_devices">https://kubevirt.io/api-reference/master/definitions.html#_v1_devices</a></p></div>
-<div class="paragraph"><p>Configure VM for UEFI Secure Boot
-Ref: <a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html</a></p></div>
-<div class="paragraph"><p>Configure VM for GPU Passthrough
-Ref: <a href="https://kubevirt.io/2021/intel-vgpu-kubevirt.html">https://kubevirt.io/2021/intel-vgpu-kubevirt.html</a></p></div>
+<div class="paragraph"><p>The virtual machines we will use as Desktops comes with a few specities:
+* We will passthrough the entire GPU
+  Ref: <a href="https://kubevirt.io/2021/intel-vgpu-kubevirt.html">https://kubevirt.io/2021/intel-vgpu-kubevirt.html</a>
+* We will remove the existing default virtual VGA
+  ref: <a href="https://kubevirt.io/api-reference/master/definitions.html#_v1_devices">https://kubevirt.io/api-reference/master/definitions.html#_v1_devices</a>
+* We will passthrough en entire USB controller
+* We will use UEFI boot to be closer from typical BareMetal
+  Ref: <a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html</a></p></div>
 <div class="listingblock">
 <div class="title">fedora35.yaml</div>
 <div class="content">
@@ -1304,21 +1285,66 @@ spec:
 <div class="sect1">
 <h2 id="_next">Next</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>iiii</p></div>
+<div class="paragraph"><p>This chapter is used as reference to the furture improvements to make.</p></div>
 <div class="sect2">
 <h3 id="_network_interfaces">Network Interfaces</h3>
-<div class="paragraph"><p><a href="https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html">https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html</a>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html">https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html</a>
+</p>
+</li>
+<li>
+<p>
 <a href="https://docs.openshift.com/container-platform/4.10/virt/node_network/virt-troubleshooting-node-network.html">https://docs.openshift.com/container-platform/4.10/virt/node_network/virt-troubleshooting-node-network.html</a>
-<a href="https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network">https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network</a></p></div>
+</p>
+</li>
+<li>
+<p>
+<a href="https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network">https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network</a>
+</p>
+</li>
+</ul></div>
 </div>
 <div class="sect2">
 <h3 id="_enabling_dedicated_resources_for_virtual_machines">Enabling dedicated resources for virtual machines</h3>
-<div class="paragraph"><p>ref: <a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html</a>
-ref: <a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html</a></p></div>
-<div class="sect3">
-<h4 id="_nvidia_operator_gpu_support_matrix">Nvidia Operator GPU Support matrix</h4>
-<div class="paragraph"><p>ref: <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/platform-support.html#platform-support">https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/platform-support.html#platform-support</a></p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html">https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html</a>
+</p>
+</li>
+</ul></div>
 </div>
+<div class="sect2">
+<h3 id="_using_microshift_and_rhel_for_edge">Using MicroShift and RHEL for Edge</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="https://microshift.io/">https://microshift.io/</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://next.redhat.com/2022/01/19/introducing-microshift/">https://next.redhat.com/2022/01/19/introducing-microshift/</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://github.com/redhat-et/microshift">https://github.com/redhat-et/microshift</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://community.ibm.com/community/user/cloud/blogs/alexei-karve/2022/03/07/microshift-11">https://community.ibm.com/community/user/cloud/blogs/alexei-karve/2022/03/07/microshift-11</a>
+</p>
+</li>
+</ul></div>
 </div>
 </div>
 </div>
@@ -1327,7 +1353,7 @@ ref: <a href="https://docs.openshift.com/container-platform/4.10/virt/virtual_ma
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2022-04-23 14:28:32 CEST
+ 2022-04-24 12:04:19 CEST
 </div>
 </div>
 </body>

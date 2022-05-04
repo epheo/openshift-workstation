@@ -7,15 +7,22 @@ Thibaut Lapierre <tla@redhat.com>
 
 == Introduction
 
-OpenShift as a workstation with GPU PCI passthrough and Container Native
-Virtualization (CNV).
+This arcticle discribes a way to run OpenShift as a workstation with GPU PCI 
+passthrough and using Container Native Virtualization (CNV) in order to provide
+a virtualized Desktop experience running on a single OpenShift node.
 
 This is used to run Microsoft FlightSimulator in a Windows VM with performances
 close from a Bare metal Windows installation.
 
+In the future, a few improvements will be worked on:
+* Reducing the Control Plane footprint by relaying on microshift instead.
+* Using GPU from containers instead of virtual machines for Linux Desktop.
+
 
 == Hardware description
 
+The workstation in use for this demo is a compact, mini-ITX workstation with the
+following hardware: 
 * AMD Ryzen 9 3950X 16-Core 32-Threads
 * 64GB DDR4
 * Nvidia RTX 3080
@@ -61,17 +68,14 @@ include::install/get-ocp-binaries.sh[]
 include::install/install-config.yaml[]
 ----
 
-Generate OpenShift Container Platform assets:
-
+.Generate OpenShift Container Platform assets:
 [source,bash]
 ----
-mkdir ocp
-cp install-config.yaml ocp
+mkdir ocp && cp install-config.yaml ocp
 openshift-install --dir=ocp create single-node-ignition-config
 ----
 
-Embed the ignition data into the RHCOS ISO:
-
+.Embed the ignition data into the RHCOS ISO:
 [source,bash]
 ----
 alias coreos-installer='podman run --privileged --rm \
@@ -82,8 +86,8 @@ coreos-installer iso ignition embed -fi iso.ign rhcos-live.x86_64.iso
 dd if=discovery_image_sno.iso of=/dev/usbkey status=progress
 ----
 
-After the ISO is copied to the USB drive, you can use the USB drive to install 
-OpenShift Container Platform.
+Once the ISO is copied to the USB drive, you can use the USB drive to boot your
+workstation node and install OpenShift Container Platform.
 
 
 === Install CNV Operator
@@ -116,7 +120,7 @@ dnf install kubevirt-virtctl
 As we do not need to manage LVM volumes automatically we would like to avoid
 automatically formating Logical Volumes once they are deleted from OpenShift.
 
-While this could lead to data leak in a multir- tenant environment, removing the
+While this could lead to data leak in a multi-tenant environment, removing the
 Local Storage Operator also avoid loosing your Virtual Machine partitions once
 you delete it.
 
@@ -291,7 +295,8 @@ https://www.freedesktop.org/software/systemd/man/systemd.syntax.html
 
 == Creating Virtual Machine
 
-iiii
+The virtual machine will use existing LVM Logical volumes, here we will assume
+we already have the Operating System installed on the LV with a UEFI boot.
 
 
 === Create PV and PV Claim out of local LVM disks
@@ -306,15 +311,15 @@ include::pv/fedora35.yaml[]
 
 
 === Defining the Virtual Machine
-  
-Remove embeded VGA 
-ref: https://kubevirt.io/api-reference/master/definitions.html#_v1_devices
 
-Configure VM for UEFI Secure Boot
-Ref: https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html
-
-Configure VM for GPU Passthrough
-Ref: https://kubevirt.io/2021/intel-vgpu-kubevirt.html
+The virtual machines we will use as Desktops comes with a few specities:
+* We will passthrough the entire GPU
+  Ref: https://kubevirt.io/2021/intel-vgpu-kubevirt.html
+* We will remove the existing default virtual VGA
+  ref: https://kubevirt.io/api-reference/master/definitions.html#_v1_devices
+* We will passthrough en entire USB controller
+* We will use UEFI boot to be closer from typical BareMetal
+  Ref: https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-efi-mode-for-vms.html
     
 .fedora35.yaml
 [source,yaml]
@@ -325,19 +330,31 @@ include::vms/fedora35.yaml[]
 
 == Next
 
-iiii
+This chapter is used as reference to the furture improvements to make.
+
+
+=== Replace node prep by qemu hooks
+
+* https://github.com/kubevirt/kubevirt/blob/main/examples/vmi-with-sidecar-hook.yaml
 
 
 === Network Interfaces
-https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html
-https://docs.openshift.com/container-platform/4.10/virt/node_network/virt-troubleshooting-node-network.html
-https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network
+
+* https://docs.openshift.com/container-platform/4.2/cnv/cnv_users_guide/cnv-attaching-vm-multiple-networks.html
+* https://docs.openshift.com/container-platform/4.10/virt/node_network/virt-troubleshooting-node-network.html
+* https://docs.openshift.com/container-platform/4.10/networking/multiple_networks/configuring-additional-network.html#nw-multus-bridge-object_configuring-additional-network
 
 
 === Enabling dedicated resources for virtual machines
-ref: https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html
-ref: https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html
 
- 
-==== Nvidia Operator GPU Support matrix
-ref: https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/platform-support.html#platform-support
+* https://docs.openshift.com/container-platform/4.10/scalability_and_performance/using-cpu-manager.html
+* https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-dedicated-resources-vm.html
+* https://docs.openshift.com/container-platform/4.10/virt/virtual_machines/advanced_vm_management/virt-using-huge-pages-with-vms.html
+
+
+=== Using MicroShift and RHEL for Edge
+
+* https://microshift.io/
+* https://next.redhat.com/2022/01/19/introducing-microshift/
+* https://github.com/redhat-et/microshift
+* https://community.ibm.com/community/user/cloud/blogs/alexei-karve/2022/03/07/microshift-11
